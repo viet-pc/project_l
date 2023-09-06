@@ -9,7 +9,6 @@ use Illuminate\Validation\Rule;
 
 class StoreFolderRequest extends ParentIdBaseRequest
 {
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -17,21 +16,20 @@ class StoreFolderRequest extends ParentIdBaseRequest
      */
     public function rules(): array
     {
-        return array_merge(
-            parent::rule(),
+        return array_merge(parent::rules(),
             [
                 'name' => [
-                    'requite',
+                    'required',
                     Rule::unique(File::class, 'name')
-                        ->where('create_by', Auth::id())
+                        ->where('created_by', Auth::id())
                         ->where('parent_id', $this->parent_id)
                         ->whereNull('deleted_at')
-                ],
+                ]
             ]
         );
     }
 
-    public function messages(): array
+    public function messages()
     {
         return [
             'name.unique' => 'Folder ":input" already exists'
