@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreFileRequest;
 use App\Http\Requests\StoreFolderRequest;
 use App\Http\Resources\FileResource;
 use App\Models\File;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -52,9 +54,68 @@ class FileController extends Controller
         $parent->appendNode($file);
     }
 
+    public function saveFileTree($fileTree, $parent, $user)
+    {
+        foreach ($fileTree as $name => $file) {
+            if (is_array($file)) {
+                $folder = new File();
+                $folder->is_folder = 1;
+                $folder->name = $name;
+
+                $parent->appendNode($folder);
+                $this->saveFileTree($file, $folder, $user);
+            } else {
+
+                $this->saveFile($file, $user, $parent);
+            }
+        }
+    }
+    /**
+     *
+     *
+     * @param $file
+     * @param $user
+     * @param $parent
+     * @author Zura Sekhniashvili <zurasekhniashvili@gmail.com>
+     */
+    private function saveFile($file, $user, $parent): void
+    {
+        /** @var UploadedFile $file */
+        $path = $file->store('/files/' . $user->id, 'local');
+
+        $model = new File();
+        $model->storage_path = $path;
+        $model->is_folder = false;
+        $model->name = $file->getClientOriginalName();
+        $model->mime = $file->getMimeType();
+        $model->size = $file->getSize();
+
+        $parent->appendNode($model);
+    }
+    public function store(StoreFileRequest $request)
+    {
+        $data = $request->validated();
+        $parent = $request->parent;
+        $user = $request->user();
+        $fileTree = $request->file_tree;
+
+        if (!$parent) {
+            $parent = $this->getRoot();
+        }
+
+        if (!empty($fileTree)) {
+            $this->saveFileTree($fileTree, $parent, $user);
+        } else {
+            foreach ($data['files'] as $file) {
+                /** @var \Illuminate\Http\UploadedFile $file */
+
+                $this->saveFile($file, $user, $parent);
+            }
+        }
+    }
+
     private function getRoot()
     {
         return File::query()->whereIsRoot()->where('created_by', Auth::id())->firstOrFail();
     }
-
 }

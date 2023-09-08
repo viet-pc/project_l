@@ -4,6 +4,8 @@ import {Menu, MenuButton, MenuItem, MenuItems} from "@headlessui/vue";
 import ResponsiveNavLink from "@/Components/ResponsiveNavLink.vue";
 import CreateFolderModal from "@/Components/app/CreateFolderModal.vue";
 import {ref} from "vue";
+import FolderUploadMenuItem from "@/Components/app/FolderUploadMenuItem.vue";
+import FileUploadMenuItem from "@/Components/app/FileUploadMenuItem.vue";
 
 const createFolderModal = ref(false)
 
@@ -40,18 +42,8 @@ function showCreateFolderModal() {
                     </MenuItem>
                 </div>
                 <div class="px-1 py-1">
-                    <MenuItem v-slot="{ active }">
-                        <a href="#" @click.prevent="showCreateFolderModal"
-                           class="text-gray-700 block px-4 py-2 text-sm">
-                            Upload Files
-                        </a>
-                    </MenuItem>
-                    <MenuItem v-slot="{ active }">
-                        <a href="#" @click.prevent="showCreateFolderModal"
-                           class="text-gray-700 block px-4 py-2 text-sm">
-                            Upload Folder
-                        </a>
-                    </MenuItem>
+                    <FileUploadMenuItem/>
+                    <FolderUploadMenuItem/>
                 </div>
             </MenuItems>
         </transition>
